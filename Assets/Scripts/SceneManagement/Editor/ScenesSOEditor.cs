@@ -4,16 +4,18 @@ using System.Linq;
 using System.IO;
 using UnityEngine;
 
-[CustomEditor(typeof(SceneManager))]
-public class SceneManagerEditor : Editor
+[CustomEditor(typeof(ScenesSO))]
+public class ScenesSOEditor : Editor
 {
     private bool showScenes = true;
     private const string ScenesRoot = "Assets/Scenes/";
     private HashSet<string> allScenePaths;
+    private ScenesSO scenesSO;
 
     private void OnEnable()
     {
         LoadAllScenePaths();
+        scenesSO = target as ScenesSO;
     }
 
     private void LoadAllScenePaths()
@@ -28,11 +30,11 @@ public class SceneManagerEditor : Editor
     {
         DrawDefaultInspector();
         EditorGUILayout.Space();
-        showScenes = EditorGUILayout.Foldout(showScenes, "Scenes in Build (by Folder)", true);
+        showScenes = EditorGUILayout.Foldout(showScenes, "Scenes in Build", true);
 
         if (showScenes)
         {
-            var currentScenes = EditorBuildSettings.scenes.Select(s => s.path).ToHashSet();
+            HashSet<string> currentScenes = EditorBuildSettings.scenes.Select(s => s.path).ToHashSet();
             bool needsPopulate = !allScenePaths.SetEquals(currentScenes.Where(p => p.StartsWith(ScenesRoot)));
 
             if (needsPopulate)
@@ -42,38 +44,47 @@ public class SceneManagerEditor : Editor
             }
 
             EditorGUILayout.HelpBox("Scenes should be located in 'Assets/Scenes/' to appear here. Sub-folders are OK", MessageType.Info);
-            var folderScenes = BuildFolderSceneMap();
+            Dictionary<string, List<SceneInfo>> folderScenes = BuildFolderSceneMap();
             EditorGUI.indentLevel++;
             foreach (var kvp in folderScenes)
             {
                 // Draw folder as header
                 EditorGUILayout.LabelField(kvp.Key, EditorStyles.boldLabel);
-                EditorGUI.indentLevel++;
                 foreach (var sceneInfo in kvp.Value)
                 {
+                    EditorGUILayout.BeginHorizontal();
+                    // Indent based on folder depth
+                    //int folderDepth = kvp.Key == "(Root)" ? 0 : kvp.Key.Count(c => c == '/');
+                    GUILayout.Space(20/* * folderDepth*/);
+                    // Find the matching SceneInfo in ScenesSO
+                    var soScene = scenesSO.scenes.FirstOrDefault(s => s.assetPath == sceneInfo.assetPath);
+                    if (soScene == null)
+                    {
+                        soScene = new SceneInfo { displayName = sceneInfo.displayName, assetPath = sceneInfo.assetPath, isSingleLoad = false };
+                        scenesSO.scenes.Add(soScene);
+                        EditorUtility.SetDirty(scenesSO);
+                    }
+                    // Draw isSingleLoad checkbox (no label, with tooltip, using GUI.Toggle for tooltip support)
+                    var singleLoadContent = new GUIContent("", "Single Load: If checked, this scene will be loaded in single mode.");
+                    Rect toggleRect = GUILayoutUtility.GetRect(18, 18, GUILayout.Width(18));
+                    soScene.isSingleLoad = GUI.Toggle(toggleRect, soScene.isSingleLoad, singleLoadContent);
+                    GUILayout.Space(10);
                     // Draw as blue underlined clickable text (like a link)
-                    var linkStyle = new GUIStyle(EditorStyles.label)
+                    GUIStyle linkStyle = new GUIStyle(EditorStyles.label)
                     {
                         richText = true,
                         normal = { textColor = new Color(0.2f, 0.4f, 1f) }, // blue
                         hover = { textColor = new Color(0.1f, 0.3f, 0.9f) }
                     };
                     string linkText = $"<color=#3366ff><u>{sceneInfo.displayName}</u></color>";
-                    Rect labelRect = GUILayoutUtility.GetRect(new GUIContent(sceneInfo.displayName), linkStyle);
-                    EditorGUI.LabelField(labelRect, linkText, linkStyle);
-                    EditorGUIUtility.AddCursorRect(labelRect, MouseCursor.Link);
-                    if (Event.current.type == EventType.MouseDown && labelRect.Contains(Event.current.mousePosition))
+                    if (GUILayout.Button(linkText, linkStyle))
                     {
                         var asset = AssetDatabase.LoadAssetAtPath<SceneAsset>(sceneInfo.assetPath);
                         if (asset != null)
-                        {
                             EditorGUIUtility.PingObject(asset);
-                            Selection.activeObject = asset;
-                        }
-                        Event.current.Use();
                     }
+                    EditorGUILayout.EndHorizontal();
                 }
-                EditorGUI.indentLevel--;
                 EditorGUILayout.Space(2);
             }
             EditorGUI.indentLevel--;
@@ -82,8 +93,8 @@ public class SceneManagerEditor : Editor
 
     private void UpdateBuildSceneList()
     {
-        var currentScenes = EditorBuildSettings.scenes.Select(s => s.path).ToHashSet();
-        var newScenes = new List<EditorBuildSettingsScene>();
+        HashSet<string> currentScenes = EditorBuildSettings.scenes.Select(s => s.path).ToHashSet();
+        List<EditorBuildSettingsScene> newScenes = new List<EditorBuildSettingsScene>();
         bool changed = false;
 
         // Add all valid scenes from folder
@@ -115,25 +126,31 @@ public class SceneManagerEditor : Editor
         {
             Debug.Log("Build settings already match folder contents. No changes made.");
         }
-    }
 
-    private class SceneInfo
-    {
-        public string displayName;
-        public string assetPath;
+        // Update ScenesSO scene list
+        if (scenesSO != null)
+        {
+            scenesSO.scenes.Clear();
+            foreach (var scenePath in allScenePaths)
+            {
+                string sceneName = Path.GetFileNameWithoutExtension(scenePath);
+                scenesSO.scenes.Add(new SceneInfo { displayName = sceneName, assetPath = scenePath, isSingleLoad = false });
+            }
+            EditorUtility.SetDirty(scenesSO);
+        }
     }
 
     private Dictionary<string, List<SceneInfo>> BuildFolderSceneMap()
     {
-        var folderScenes = new Dictionary<string, List<SceneInfo>>();
-        var scenes = EditorBuildSettings.scenes;
+        Dictionary<string, List<SceneInfo>> folderScenes = new Dictionary<string, List<SceneInfo>>();
+        EditorBuildSettingsScene[] scenes = EditorBuildSettings.scenes;
         foreach (var scene in scenes)
         {
-            var path = scene.path;
+            string path = scene.path;
             if (!path.StartsWith(ScenesRoot))
                 continue;
-            var relativePath = path.Substring(ScenesRoot.Length); // Remove "Assets/Scenes/"
-            var parts = relativePath.Split('/');
+            string relativePath = path.Substring(ScenesRoot.Length); // Remove "Assets/Scenes/"
+            string[] parts = relativePath.Split('/');
             string folder;
             if (parts.Length > 1)
                 folder = string.Join("/", parts.Take(parts.Length - 1)); // All folders, joined
@@ -148,7 +165,7 @@ public class SceneManagerEditor : Editor
             list.Add(new SceneInfo { displayName = sceneName, assetPath = path });
         }
         // Sort folders and scenes alphabetically
-        foreach (var key in folderScenes.Keys.ToList())
+        foreach (string key in folderScenes.Keys.ToList())
             folderScenes[key] = folderScenes[key].OrderBy(n => n.displayName).ToList();
         return folderScenes.OrderBy(kvp => kvp.Key).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
     }

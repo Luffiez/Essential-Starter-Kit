@@ -7,12 +7,9 @@ public class SceneManager : MonoBehaviour
 {
     public static SceneManager Instance { get; private set; }
 
-    private List<string> loadedScenes = new();
+    [SerializeField] private ScenesSO scenes;
 
-    /// <summary>
-    /// We assume a main scene for core game objects, and load other scenes additively.
-    /// </summary>
-    private LoadSceneMode Mode => LoadSceneMode.Additive;
+    private List<string> loadedScenes = new(); 
 
     public List<string> LoadedScenes => loadedScenes;
 
@@ -27,9 +24,31 @@ public class SceneManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Loads the scene based on the provided SceneInfo.
+    /// Single additive loading is determined by the isSingleLoad property.
+    /// </summary>
+    internal void LoadScene(SceneInfo sceneInfo, Action onLoadedAsync = null)
+    {
+        if (sceneInfo.isSingleLoad)
+            LoadSceneSingle(sceneInfo.displayName);
+        else
+            LoadSceneAsync(sceneInfo.displayName, onLoadedAsync);
+    }
+
+    /// <summary>
+    /// Unloads the scene based on the provided SceneInfo.
+    /// </summary>
+    /// <param name="sceneInfo"></param>
+    /// <param name="onUnloadedAsync"></param>
+    internal void UnloadScene(SceneInfo sceneInfo, Action onUnloadedAsync = null)
+    {
+        UnloadScene(sceneInfo.displayName, onUnloadedAsync);
+    }
+
+    /// <summary>
     /// Loads the scene with the given name.
     /// </summary>
-    public void LoadSceneSingle(string sceneName)
+    private void LoadSceneSingle(string sceneName)
     {
         if (loadedScenes.Contains(sceneName))
         {
@@ -43,25 +62,10 @@ public class SceneManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Loads the scene with the given name.
-    /// </summary>
-    public void LoadScene(string sceneName)
-    {
-        if(loadedScenes.Contains(sceneName))
-        {
-            Debug.LogWarning($"Scene '{sceneName}' is already loaded.");
-            return;
-        }
-
-        UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName, Mode);
-        loadedScenes.Add(sceneName);
-    }
-
-    /// <summary>
     /// Loads the scene with the given name asynchronously.
     /// Allows specifying a callback to be invoked when loading is complete.
     /// </summary>
-    public void LoadSceneAsync(string sceneName, Action onLoaded = null)
+    private void LoadSceneAsync(string sceneName, Action onLoaded = null)
     {
         if (loadedScenes.Contains(sceneName))
         {
@@ -70,7 +74,7 @@ public class SceneManager : MonoBehaviour
             return;
         }
 
-        AsyncOperation asyncOp = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName, Mode);
+        AsyncOperation asyncOp = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
         asyncOp.completed += _ => 
         { 
             onLoaded?.Invoke();
@@ -82,7 +86,7 @@ public class SceneManager : MonoBehaviour
     /// Unloads the scene with the given name asynchronously.
     /// Allows specifying an optional callback to be invoked when unloading is complete.
     /// </summary>
-    public void UnloadScene(string sceneName, Action onUnloaded = null)
+    internal void UnloadScene(string sceneName, Action onUnloaded = null)
     {
         if (!loadedScenes.Contains(sceneName))
         {
