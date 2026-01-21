@@ -10,8 +10,8 @@ public class SceneLoader : MonoBehaviour
     private ScenesSO scenesSO;
     enum StartMode
     {
-        LoadOnStart,
-        Custom
+        None,
+        LoadOnStart
     }
 
     private void Start()

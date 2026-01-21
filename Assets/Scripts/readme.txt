@@ -1,8 +1,8 @@
-# Essential Starter Kit â€“ System Overview
+# Essential Starter Kit – System Overview
 
 Essential Starter Kit provides a set of foundational systems for Unity projects, including scene management, audio management, and global game state access. 
 This package is designed to help you quickly add robust, reusable functionality to your Unity games, enabling rapid prototyping and clean project structure. 
-With custom editors and flexible components, you can easily manage scenes, play and control audio, and centralize your gameâ€™s core logic.
+With custom editors and flexible components, you can easily manage scenes, play and control audio, and centralize your game’s core logic.
 
 
 ## Game
@@ -44,7 +44,7 @@ With custom editors and flexible components, you can easily manage scenes, play 
 
 ---
 
-## How to Use
+How to Use
 
 1. Assign your `AudioSettings` and `ScenesSO` assets in the 'SettingsSO' in the 'game' monobehaviour.
 2. Use the provided custom editors to configure scenes and audio clips.
