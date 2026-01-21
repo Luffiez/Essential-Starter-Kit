@@ -2,28 +2,20 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 
-[DefaultExecutionOrder(-100)]
-public class Settings : MonoBehaviour
+public class Settings
 {
-    public static Settings Instance { get; private set; }
+    private SettingsSO settings;
+    private Dictionary<Type, ScriptableObject> settingsByType;
 
-    [SerializeField] private ScriptableObject[] settings;
-    private  Dictionary<Type, ScriptableObject> settingsByType;
-
-    private void Awake()
+    public Settings(SettingsSO settingsSO)
     {
-        if(Instance != null)
-        {
-            Destroy(this);
-            return;
-        }
-        Instance = this;
+        settings = settingsSO;
+        ChacheSettings();
     }
-
     private void ChacheSettings()
     {
         settingsByType = new Dictionary<Type, ScriptableObject>();
-        foreach (ScriptableObject setting in settings)
+        foreach (ScriptableObject setting in settings.Settings)
         {
             if (setting != null)
             {
@@ -36,9 +28,6 @@ public class Settings : MonoBehaviour
 
     public T GetSetting<T>() where T : ScriptableObject
     {
-        if(settingsByType == null)
-            ChacheSettings();
-
         if (settingsByType != null && settingsByType.TryGetValue(typeof(T), out var setting))
             return setting as T;
         Debug.LogError($"Setting of type {typeof(T)} not found.");

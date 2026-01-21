@@ -1,19 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.VectorGraphics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class SceneManager
 {
-    private ScenesSO scenes;
     private List<string> loadedScenes = new();
-
-    public SceneManager()
-    {
-        scenes = Settings.Instance.GetSetting<ScenesSO>();
-    }
 
     public List<string> LoadedScenes => loadedScenes;
 

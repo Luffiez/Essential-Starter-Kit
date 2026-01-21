@@ -14,13 +14,10 @@ public class SceneLoader : MonoBehaviour
         Custom
     }
 
-    private void Awake()
-    {
-        scenesSO = Settings.Instance.GetSetting<ScenesSO>();
-    }
-
     private void Start()
     {
+        scenesSO = Game.Settings.GetSetting<ScenesSO>();
+
         if (startMode == StartMode.LoadOnStart && !string.IsNullOrEmpty(sceneName))
             LoadScene();
     }
