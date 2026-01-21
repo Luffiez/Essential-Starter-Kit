@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SettingsSO
   settings:
   - {fileID: 11400000, guid: fd3e6f198d01fa84cb293cb4ad862d7e, type: 2}
+  - {fileID: 11400000, guid: acbe7b1ed77836641b8d214baf88a1c4, type: 2}

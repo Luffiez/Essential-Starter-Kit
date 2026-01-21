@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59decc7121eb1d947949b3b7efa6d3f8, type: 3}
+  m_Name: AudioSettings
+  m_EditorClassIdentifier: Assembly-CSharp::AudioSettings
+  masterVolumeDefault: 1
+  bgmVolumeDefault: 1
+  sfxVolumeDefault: 1
+  bgmLibrary:
+    clips:
+    - name: Bgm 1
+      clip: {fileID: 8300000, guid: 5d163943b5eaede46968b7ddb32163e9, type: 3}
+      channel: 1
+    - name: Bgm 2
+      clip: {fileID: 8300000, guid: 63a135ff3514da64293f5b9719b354ab, type: 3}
+      channel: 1
+  sfxLibrary:
+    clips:
+    - name: 'Sfx 1 '
+      clip: {fileID: 8300000, guid: 080a3e61b664cc749a2c891b4606fb79, type: 3}
+      channel: 2
+    - name: Sfx 2
+      clip: {fileID: 8300000, guid: 924f6f3c7ddd1ec4cae612eb731e1c45, type: 3}
+      channel: 2
+    - name: UI On
+      clip: {fileID: 8300000, guid: c9ecb44e5e179bf45811f1af08049a62, type: 3}
+      channel: 2
+    - name: UI Off
+      clip: {fileID: 8300000, guid: de0efaf4f941708408f1224ad3d21065, type: 3}
+      channel: 2

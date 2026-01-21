@@ -13,6 +13,9 @@ MonoBehaviour:
   m_Name: Scenes
   m_EditorClassIdentifier: Assembly-CSharp::ScenesSO
   scenes:
+  - displayName: AudioTest
+    assetPath: Assets/Scenes/AudioTest.unity
+    isSingleLoad: 0
   - displayName: Game
     assetPath: Assets/Scenes/Game.unity
     isSingleLoad: 1

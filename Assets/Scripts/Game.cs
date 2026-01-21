@@ -1,10 +1,12 @@
 using UnityEngine;
 
+[DefaultExecutionOrder(-100)]
 public class Game : MonoBehaviour
 {
     public static Game Instance { get; private set; }
     public static SceneManager SceneManager { get; private set; }
     public static Settings Settings { get; private set; }
+    public static AudioManager Audio => AudioManager.Instance;
 
     [SerializeField] SettingsSO settingsSO;
 
