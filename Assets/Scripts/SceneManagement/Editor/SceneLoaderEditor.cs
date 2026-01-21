@@ -8,12 +8,11 @@ public class SceneLoaderEditor : Editor
         serializedObject.Update();
         base.OnInspectorGUI();
         // Get properties
-        SerializedProperty scenesSOProp = serializedObject.FindProperty("scenesSO");
         SerializedProperty sceneNameProp = serializedObject.FindProperty("sceneName");
 
 
         // Get the ScenesSO asset
-        ScenesSO scenesSO = scenesSOProp != null ? scenesSOProp.objectReferenceValue as ScenesSO : null;
+        ScenesSO scenesSO = Settings.Instance.GetSetting<ScenesSO>();
         string[] sceneNames;
         int selectedIndex = 0;
 

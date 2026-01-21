@@ -1,26 +1,27 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.VectorGraphics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class SceneManager : MonoBehaviour
+public class SceneManager
 {
-    public static SceneManager Instance { get; private set; }
+    private ScenesSO scenes;
+    private List<string> loadedScenes = new();
 
-    [SerializeField] private ScenesSO scenes;
-
-    private List<string> loadedScenes = new(); 
+    public SceneManager()
+    {
+        scenes = Settings.Instance.GetSetting<ScenesSO>();
+    }
 
     public List<string> LoadedScenes => loadedScenes;
 
-    private void Awake()
+    public bool IsSceneLoaded(SceneInfo sceneInfo)
     {
-        if (Instance)
-        {
-            Destroy(this);
-            return;
-        }
-        Instance = this;
+        // Check if the scene is in the loadedScenes list or if Unity reports it as loaded
+        return loadedScenes.Contains(sceneInfo.displayName) ||
+               (UnityEngine.SceneManagement.SceneManager.GetSceneByName(sceneInfo.displayName).isLoaded);
     }
 
     /// <summary>
@@ -29,6 +30,13 @@ public class SceneManager : MonoBehaviour
     /// </summary>
     internal void LoadScene(SceneInfo sceneInfo, Action onLoadedAsync = null)
     {
+        if (IsSceneLoaded(sceneInfo))
+        {
+            Debug.LogWarning($"Scene '{sceneInfo.displayName}' is already loaded.");
+            onLoadedAsync?.Invoke();
+            return;
+        }
+
         if (sceneInfo.isSingleLoad)
             LoadSceneSingle(sceneInfo.displayName);
         else
@@ -50,12 +58,6 @@ public class SceneManager : MonoBehaviour
     /// </summary>
     private void LoadSceneSingle(string sceneName)
     {
-        if (loadedScenes.Contains(sceneName))
-        {
-            Debug.LogWarning($"Scene '{sceneName}' is already loaded.");
-            return;
-        }
-
         loadedScenes.Clear();
         UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
         loadedScenes.Add(sceneName);
@@ -67,13 +69,6 @@ public class SceneManager : MonoBehaviour
     /// </summary>
     private void LoadSceneAsync(string sceneName, Action onLoaded = null)
     {
-        if (loadedScenes.Contains(sceneName))
-        {
-            Debug.LogWarning($"Scene '{sceneName}' is already loaded.");
-            onLoaded?.Invoke();
-            return;
-        }
-
         AsyncOperation asyncOp = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
         asyncOp.completed += _ => 
         { 
